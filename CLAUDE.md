@@ -170,13 +170,26 @@ info, full feeding schedule (`multiFeedItem`) — left unmapped until a node nee
 { result: {
     id, name, sn (serial number), firmware, desc ("Next Dispense: HH:MM"),
     settings: { manualLock, lightMode, feedSound, foodWarn, ...more },
-    state: { food, batteryPower, batteryStatus, desiccantLeftDays, feeding, ...more },
+    state: { food, batteryPower, batteryStatus, desiccantLeftDays, feeding,
+             feedState, ...more },
 } }
 ```
 
 - `state.food` was observed as `1` on both (well-stocked) real devices — likely a
   coarse ok/low indicator rather than a precise level; unconfirmed against an actually
   empty hopper
+- `state.feedState` is **per device, not per cat** — PetKit has no way to know which
+  cat ate from which bowl, only what each physical feeder dispensed:
+  ```
+  feedState: { realAmountTotal, planAmountTotal, addAmountTotal, planRealAmountTotal,
+               times, feedTimes: { [secondsSinceMidnight: string]: count } }
+  ```
+  `realAmountTotal` = `planRealAmountTotal` (from the schedule) + `addAmountTotal`
+  (manual/extra dispenses, including ones triggered via `feedNow`). Whether this
+  resets daily or accumulates since the schedule was configured is **unconfirmed** —
+  observed `feedTimes` counts greater than 1 on slots that should only fire once/day
+  suggest it may not be a clean "today" window; treat it as informative rather than
+  authoritative until verified over multiple days
 
 ### Manual feed (dispense)
 

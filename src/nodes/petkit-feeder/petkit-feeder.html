@@ -50,7 +50,7 @@
     <dt>payload.settings <span class="property-type">object</span></dt>
     <dd><code>manualLock</code> (child lock), <code>lightMode</code> (indicator light), <code>feedSound</code> (dispense tone), <code>foodWarn</code> (shortage alarm) - all 0/1 except lightMode</dd>
     <dt>payload.state <span class="property-type">object</span></dt>
-    <dd><code>food</code> (coarse ok/low indicator), <code>batteryPower</code>, <code>batteryStatus</code>, <code>desiccantLeftDays</code>, <code>feeding</code> (1 while actively dispensing)</dd>
+    <dd><code>food</code> (coarse ok/low indicator), <code>batteryPower</code>, <code>batteryStatus</code>, <code>desiccantLeftDays</code>, <code>feeding</code> (1 while actively dispensing), <code>feedState</code> (per-device - not per-cat - dispense totals: <code>realAmountTotal</code>, <code>planAmountTotal</code>, <code>addAmountTotal</code>, <code>planRealAmountTotal</code>, <code>times</code>, <code>feedTimes</code>)</dd>
   </dl>
   <h3>Details</h3>
   <p>Send any message to the input to trigger an immediate poll.
