@@ -42,6 +42,13 @@ Both `deviceId` and `amount` can be overridden per message via `msg.payload`. If
 `msg.payload.settingKey` is set instead, the node updates that setting (e.g.
 `manualLock`, `lightMode`, `feedSound`, `foodWarn`) rather than feeding.
 
+## Examples
+
+- **`feed-on-arrival.json`** in `node-red-contrib-surepetcare`'s `examples/` directory -
+  dispenses each cat's meal via `petkit-feeder-control`, triggered by arrival through
+  the flap (`surepetcare-pets`). Lives there rather than here since it needs both
+  packages installed either way - see its info panel for the full design.
+
 ## Reliability
 
 Every API call - polling, feeding, or settings - automatically retries on PetKit's
