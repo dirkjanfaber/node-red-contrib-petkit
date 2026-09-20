@@ -28,9 +28,21 @@ function makeFlow(pollInterval = 0) {
   ];
 }
 
+// Shape confirmed against a real D4 device_detail response (see CLAUDE.md).
+const SOLO_FEEDER = {
+  id: 100,
+  type: 'd4' as const,
+  name: 'Solo',
+  serialNumber: '20260627G10283',
+  firmware: '1.267',
+  desc: 'Next Dispense: 17:30',
+  settings: { manualLock: 0, lightMode: 1, feedSound: 1, foodWarn: 0 },
+  state: { food: 1, batteryPower: 0, batteryStatus: 0, desiccantLeftDays: 27, feeding: 0 },
+};
+
 const mockAPI: PetkitBackend = {
   authenticate: jest.fn().mockResolvedValue(undefined),
-  getFeeders: jest.fn().mockResolvedValue([{ id: 100, type: 'd4', name: 'Solo' }]),
+  getFeeders: jest.fn().mockResolvedValue([SOLO_FEEDER]),
   feedNow: jest.fn().mockResolvedValue(undefined),
   updateFeederSetting: jest.fn().mockResolvedValue(undefined),
 };
@@ -71,10 +83,10 @@ describe('petkit-feeder node', () => {
     await n1.poll();
     await done;
 
-    expect(messages[0].payload).toMatchObject({ id: 100, name: 'Solo', type: 'd4' });
+    expect(messages[0].payload).toEqual(SOLO_FEEDER);
   });
 
-  it('should show the feeder name in status when there is one feeder', async () => {
+  it('should show the feeder name and desiccant days left in status when there is one feeder', async () => {
     await helper.load([petkitConfig, petkitFeeder], makeFlow());
     const cfg = helper.getNode('cfg1') as any;
     cfg.getAPI = () => mockAPI;
@@ -83,7 +95,25 @@ describe('petkit-feeder node', () => {
     await n1.poll();
 
     const lastArg = (n1.status as any).lastCall?.args[0];
-    expect(lastArg).toMatchObject({ fill: 'green', text: 'Solo' });
+    expect(lastArg).toMatchObject({ fill: 'green', text: 'Solo (desiccant 27d)' });
+  });
+
+  it('should note when a feeder\'s child lock is on', async () => {
+    const lockedAPI = {
+      ...mockAPI,
+      getFeeders: jest.fn().mockResolvedValue([
+        { ...SOLO_FEEDER, settings: { ...SOLO_FEEDER.settings, manualLock: 1 } },
+      ]),
+    };
+    await helper.load([petkitConfig, petkitFeeder], makeFlow());
+    const cfg = helper.getNode('cfg1') as any;
+    cfg.getAPI = () => lockedAPI;
+    const n1 = helper.getNode('n1') as any;
+
+    await n1.poll();
+
+    const lastArg = (n1.status as any).lastCall?.args[0];
+    expect(lastArg).toMatchObject({ fill: 'green', text: 'Solo (desiccant 27d, locked)' });
   });
 
   it('should show a "no feeders" status when the account has none', async () => {
@@ -103,10 +133,10 @@ describe('petkit-feeder node', () => {
     const manyFeedersAPI = {
       ...mockAPI,
       getFeeders: jest.fn().mockResolvedValue([
-        { id: 100, type: 'd4', name: 'Solo 1' },
-        { id: 101, type: 'd4', name: 'Solo 2' },
-        { id: 102, type: 'd4', name: 'Solo 3' },
-        { id: 103, type: 'd4', name: 'Solo 4' },
+        { ...SOLO_FEEDER, id: 100, name: 'Solo 1' },
+        { ...SOLO_FEEDER, id: 101, name: 'Solo 2' },
+        { ...SOLO_FEEDER, id: 102, name: 'Solo 3' },
+        { ...SOLO_FEEDER, id: 103, name: 'Solo 4' },
       ]),
     };
     await helper.load([petkitConfig, petkitFeeder], makeFlow());

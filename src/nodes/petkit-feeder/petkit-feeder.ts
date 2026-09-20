@@ -1,9 +1,17 @@
 import { NodeAPI, NodeDef } from 'node-red';
-import { PetkitBackend } from '../../types/petkit';
+import { Feeder, PetkitBackend } from '../../types/petkit';
 
 interface PetkitFeederNodeDef extends NodeDef {
   config: string;
   pollInterval: number;
+}
+
+function feederSummary(f: Feeder): string {
+  const bits = [`desiccant ${f.state.desiccantLeftDays}d`];
+  if (f.settings.manualLock === 1) {
+    bits.push('locked');
+  }
+  return `${f.name} (${bits.join(', ')})`;
 }
 
 export = function (RED: NodeAPI) {
@@ -19,14 +27,14 @@ export = function (RED: NodeAPI) {
       try {
         const feeders = await api.getFeeders();
         for (const feeder of feeders) {
-          this.send({ payload: { id: feeder.id, type: feeder.type, name: feeder.name } });
+          this.send({ payload: feeder });
         }
 
         let summary: string;
         if (feeders.length === 0) {
           summary = 'no feeders';
         } else if (feeders.length <= 2) {
-          summary = feeders.map(f => f.name).join(', ');
+          summary = feeders.map(feederSummary).join(', ');
         } else {
           summary = `${feeders.length} feeders`;
         }

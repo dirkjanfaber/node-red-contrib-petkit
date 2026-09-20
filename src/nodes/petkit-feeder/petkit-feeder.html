@@ -43,6 +43,14 @@
     <dd>Always <code>d4</code> for now (Fresh Element Solo only)</dd>
     <dt>payload.name <span class="property-type">string</span></dt>
     <dd>Feeder name, as set in the PetKit app</dd>
+    <dt>payload.serialNumber / payload.firmware <span class="property-type">string</span></dt>
+    <dd>Device serial number and firmware version</dd>
+    <dt>payload.desc <span class="property-type">string</span></dt>
+    <dd>PetKit's own human-readable status line, e.g. <code>"Next Dispense: 17:30"</code></dd>
+    <dt>payload.settings <span class="property-type">object</span></dt>
+    <dd><code>manualLock</code> (child lock), <code>lightMode</code> (indicator light), <code>feedSound</code> (dispense tone), <code>foodWarn</code> (shortage alarm) - all 0/1 except lightMode</dd>
+    <dt>payload.state <span class="property-type">object</span></dt>
+    <dd><code>food</code> (coarse ok/low indicator), <code>batteryPower</code>, <code>batteryStatus</code>, <code>desiccantLeftDays</code>, <code>feeding</code> (1 while actively dispensing)</dd>
   </dl>
   <h3>Details</h3>
   <p>Send any message to the input to trigger an immediate poll.
