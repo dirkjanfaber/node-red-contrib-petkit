@@ -1,0 +1,71 @@
+<script type="text/javascript">
+  RED.nodes.registerType('petkit-feeder-control', {
+    category: 'PetKit',
+    color: '#a1665e',
+    defaults: {
+      name: { value: '' },
+      config: { value: '', type: 'petkit-config', required: true },
+      deviceId: { value: '' },
+      amount: { value: 20, validate: RED.validators.number() },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'paw.svg',
+    label: function () {
+      return this.name || 'petkit feeder control';
+    },
+    paletteLabel: 'petkit feeder control',
+  });
+</script>
+
+<script type="text/html" data-template-name="petkit-feeder-control">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-deviceId"><i class="fa fa-microchip"></i> Device ID</label>
+    <input type="text" id="node-input-deviceId" placeholder="from a petkit-feeder node's payload.id" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-amount"><i class="fa fa-cutlery"></i> Amount</label>
+    <select id="node-input-amount">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="40">40</option>
+      <option value="50">50</option>
+    </select>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="petkit-feeder-control">
+  <p>Dispenses food from, or changes a setting on, a PetKit Fresh Element Solo (D4)
+  feeder.</p>
+  <p>If <code>msg.payload.settingKey</code> is set, the node updates that setting
+  instead of feeding. Otherwise it dispenses the configured (or overridden) amount.</p>
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt class="optional">payload.deviceId <span class="property-type">number</span></dt>
+    <dd>Override the configured device ID</dd>
+    <dt class="optional">payload.amount <span class="property-type">number</span></dt>
+    <dd>Override the configured feed amount. Fresh Element Solo only accepts 10, 20, 30, 40, or 50.</dd>
+    <dt class="optional">payload.settingKey <span class="property-type">string</span></dt>
+    <dd>Setting to change instead of feeding, e.g. <code>manualLock</code>, <code>lightMode</code>, <code>feedTone</code>, <code>feedSound</code>, <code>foodWarn</code></dd>
+    <dt class="optional">payload.settingValue <span class="property-type">number</span></dt>
+    <dd>Value for <code>settingKey</code></dd>
+  </dl>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.deviceId <span class="property-type">number</span></dt>
+    <dd>Device ID that was targeted</dd>
+    <dt class="optional">payload.amount <span class="property-type">number</span></dt>
+    <dd>Amount fed (feed operations only)</dd>
+    <dt class="optional">payload.settingKey / payload.settingValue</dt>
+    <dd>Setting that was applied (setting operations only)</dd>
+  </dl>
+</script>

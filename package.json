@@ -1,0 +1,86 @@
+{
+  "name": "node-red-contrib-petkit",
+  "version": "0.1.0",
+  "description": "Node-RED nodes for PetKit smart feeders",
+  "keywords": [
+    "node-red",
+    "petkit",
+    "feeder",
+    "pet"
+  ],
+  "author": "Dirk-Jan Faber",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dirkjanfaber/node-red-contrib-petkit.git"
+  },
+  "homepage": "https://github.com/dirkjanfaber/node-red-contrib-petkit#readme",
+  "bugs": {
+    "url": "https://github.com/dirkjanfaber/node-red-contrib-petkit/issues"
+  },
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && copyfiles -u 2 \"src/nodes/**/*.html\" \"src/nodes/**/icons/*.svg\" dist/nodes/",
+    "build:watch": "tsc --watch",
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "node-red": {
+    "version": ">=4.0.0",
+    "nodes": {
+      "petkit-config": "dist/nodes/petkit-config/petkit-config.js",
+      "petkit-feeder": "dist/nodes/petkit-feeder/petkit-feeder.js",
+      "petkit-feeder-control": "dist/nodes/petkit-feeder-control/petkit-feeder-control.js"
+    }
+  },
+  "peerDependencies": {
+    "node-red": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "node-red": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "axios": "^1.20.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "@types/node-red-node-test-helper": "^0.3.5",
+    "axios-mock-adapter": "^2.1.0",
+    "copyfiles": "^2.4.1",
+    "jest": "^30.5.2",
+    "node-red": "^4.1.8",
+    "node-red-node-test-helper": "^0.3.6",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.9.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src/__tests__"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      }
+    }
+  }
+}

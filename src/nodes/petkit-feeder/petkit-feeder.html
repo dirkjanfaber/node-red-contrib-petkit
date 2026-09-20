@@ -1,0 +1,51 @@
+<script type="text/javascript">
+  RED.nodes.registerType('petkit-feeder', {
+    category: 'PetKit',
+    color: '#8fbf6f',
+    defaults: {
+      name: { value: '' },
+      config: { value: '', type: 'petkit-config', required: true },
+      pollInterval: { value: 60, validate: RED.validators.number() },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'paw.svg',
+    label: function () {
+      return this.name || 'petkit feeder';
+    },
+    paletteLabel: 'petkit feeder',
+  });
+</script>
+
+<script type="text/html" data-template-name="petkit-feeder">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-pollInterval"><i class="fa fa-clock-o"></i> Poll interval (s)</label>
+    <input type="number" id="node-input-pollInterval" min="60" step="1" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="petkit-feeder">
+  <p>Polls the PetKit cloud API for Fresh Element Solo (D4) feeder status and emits
+  one message per feeder.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.id <span class="property-type">number</span></dt>
+    <dd>PetKit device ID</dd>
+    <dt>payload.type <span class="property-type">string</span></dt>
+    <dd>Always <code>d4</code> for now (Fresh Element Solo only)</dd>
+    <dt>payload.name <span class="property-type">string</span></dt>
+    <dd>Feeder name, as set in the PetKit app</dd>
+  </dl>
+  <h3>Details</h3>
+  <p>Send any message to the input to trigger an immediate poll.
+  The node also polls automatically at the configured interval (minimum 60 s per
+  the PetKit API's rate limit).</p>
+</script>

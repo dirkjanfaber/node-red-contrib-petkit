@@ -1,0 +1,45 @@
+<script type="text/javascript">
+  RED.nodes.registerType('petkit-config', {
+    category: 'config',
+    defaults: {
+      name: { value: '' },
+    },
+    credentials: {
+      email: { type: 'text' },
+      password: { type: 'password' },
+      region: { type: 'text' },
+    },
+    icon: 'paw.svg',
+    label: function () {
+      return this.name || 'PetKit';
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="petkit-config">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="PetKit" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-email"><i class="fa fa-envelope"></i> Email</label>
+    <input type="text" id="node-config-input-email" placeholder="your@email.com" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-password"><i class="fa fa-lock"></i> Password</label>
+    <input type="password" id="node-config-input-password" />
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-region"><i class="fa fa-globe"></i> Region</label>
+    <input type="text" id="node-config-input-region" placeholder="United States" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="petkit-config">
+  <p>Configuration node for the PetKit cloud API.</p>
+  <p>Enter your PetKit account credentials. <b>Region</b> must match the exact region
+  name your account is registered under (as shown in the PetKit app's region/country
+  setting) - e.g. <code>United States</code>, <code>United Kingdom</code>,
+  <code>Germany</code>, or <code>China</code>. Getting this wrong will fail login with
+  an "unregistered email" error even if the credentials are correct.</p>
+</script>
