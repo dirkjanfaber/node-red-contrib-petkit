@@ -204,6 +204,29 @@ POST {base_url}d4/saveDailyFeed
 - Validate `amount` against that allow-list client-side before calling — PetKit's error
   response for an invalid amount hasn't been characterized yet
 
+### Skip / restore a scheduled feed (today only)
+
+```
+POST {base_url}d4/removeDailyFeed    ← skip
+POST {base_url}d4/restoreDailyFeed   ← undo the skip
+{ day: "YYYYMMDD", deviceId, id: "s<seconds since midnight>" }
+```
+
+- From py-petkit-api's `REMOVE_DAILY_FEED` / `RESTORE_DAILY_FEED`. Skip confirmed live
+  on two D4s on 2026-10-01: the slot dropped out of `feedState.feedTimes` and `desc`
+  moved on to the next meal. Restore has not been exercised live yet
+- `id` must be a *scheduled* slot. `feedTimes` also lists manual `saveDailyFeed`
+  dispenses (keyed by their dispense time), which aren't skippable
+- Skipping does not lower `planAmountTotal`
+- Calling `saveDailyFeed` right after `removeDailyFeed` on the same device can return
+  error `1514` ("operation is too frequent"); a retry a few seconds later succeeds
+
+### `day` parameter
+
+Every `day: "YYYYMMDD"` is the feeder's *local* calendar day, derived from the
+configured timezone (`localDayCompact`). Using the UTC date would target yesterday for
+the first hours after local midnight east of Greenwich.
+
 ### Settings
 
 ```
@@ -265,6 +288,8 @@ interface PetkitBackend {
   getFeeders(): Promise<Feeder[]>
   feedNow(deviceId: number, amount: number): Promise<void>
   updateFeederSetting(deviceId: number, key: string, value: number): Promise<void>
+  skipScheduledFeed(deviceId: number, feedTime: number): Promise<void>
+  restoreScheduledFeed(deviceId: number, feedTime: number): Promise<void>
 }
 ```
 

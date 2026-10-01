@@ -44,16 +44,27 @@
 </script>
 
 <script type="text/html" data-help-name="petkit-feeder-control">
-  <p>Dispenses food from, or changes a setting on, a PetKit Fresh Element Solo (D4)
-  feeder.</p>
-  <p>If <code>msg.payload.settingKey</code> is set, the node updates that setting
-  instead of feeding. Otherwise it dispenses the configured (or overridden) amount.</p>
+  <p>Dispenses food from, skips or restores one of today's scheduled meals on, or changes
+  a setting on, a PetKit Fresh Element Solo (D4) feeder.</p>
+  <p>If <code>msg.payload.skipFeedTime</code> or <code>msg.payload.restoreFeedTime</code>
+  is set, the node skips or restores that scheduled meal for today only - the recurring
+  feeding plan is left untouched. Otherwise, if <code>msg.payload.settingKey</code> is
+  set, it updates that setting. Otherwise it dispenses the configured (or overridden)
+  amount.</p>
+  <p>To give a meal early, send <code>{ "skipFeedTime": "06:45" }</code> followed by a
+  normal feed, so the cats don't get breakfast twice.</p>
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt class="optional">payload.deviceId <span class="property-type">number</span></dt>
     <dd>Override the configured device ID</dd>
     <dt class="optional">payload.amount <span class="property-type">number</span></dt>
     <dd>Override the configured feed amount. Fresh Element Solo only accepts 10, 20, 30, 40, or 50.</dd>
+    <dt class="optional">payload.skipFeedTime <span class="property-type">number | string</span></dt>
+    <dd>Skip today's scheduled meal at this time, as seconds since midnight (e.g. <code>24300</code>)
+    or <code>"HH:MM"</code> (e.g. <code>"06:45"</code>). Use a time from the feeding plan:
+    <code>feedState.feedTimes</code> also lists today's manual dispenses, which can't be skipped.</dd>
+    <dt class="optional">payload.restoreFeedTime <span class="property-type">number | string</span></dt>
+    <dd>Undo an earlier skip of today's meal at this time (same formats as <code>skipFeedTime</code>)</dd>
     <dt class="optional">payload.settingKey <span class="property-type">string</span></dt>
     <dd>Setting to change instead of feeding, e.g. <code>manualLock</code>, <code>lightMode</code>, <code>feedTone</code>, <code>feedSound</code>, <code>foodWarn</code></dd>
     <dt class="optional">payload.settingValue <span class="property-type">number</span></dt>
@@ -65,6 +76,8 @@
     <dd>Device ID that was targeted</dd>
     <dt class="optional">payload.amount <span class="property-type">number</span></dt>
     <dd>Amount fed (feed operations only)</dd>
+    <dt class="optional">payload.skipFeedTime / payload.restoreFeedTime <span class="property-type">number</span></dt>
+    <dd>Meal that was skipped or restored, as seconds since midnight</dd>
     <dt class="optional">payload.settingKey / payload.settingValue</dt>
     <dd>Setting that was applied (setting operations only)</dd>
   </dl>

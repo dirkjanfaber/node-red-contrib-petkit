@@ -42,6 +42,11 @@ Both `deviceId` and `amount` can be overridden per message via `msg.payload`. If
 `msg.payload.settingKey` is set instead, the node updates that setting (e.g.
 `manualLock`, `lightMode`, `feedSound`, `foodWarn`) rather than feeding.
 
+`msg.payload.skipFeedTime` skips one of today's scheduled meals, and
+`msg.payload.restoreFeedTime` undoes that skip. Both take seconds since midnight
+(`24300`) or `"HH:MM"` (`"06:45"`) and only affect today. Use a skip before feeding
+early, so the scheduled meal doesn't dispense a second time.
+
 ## Examples
 
 - **`feed-on-arrival.json`** in `node-red-contrib-surepetcare`'s `examples/` directory -

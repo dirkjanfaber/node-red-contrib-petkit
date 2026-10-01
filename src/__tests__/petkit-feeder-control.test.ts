@@ -12,6 +12,8 @@ const mockAPI: PetkitBackend = {
   getFeeders: jest.fn().mockResolvedValue([]),
   feedNow: jest.fn().mockResolvedValue(undefined),
   updateFeederSetting: jest.fn().mockResolvedValue(undefined),
+  skipScheduledFeed: jest.fn().mockResolvedValue(undefined),
+  restoreScheduledFeed: jest.fn().mockResolvedValue(undefined),
 };
 
 function makeFlow(overrides: Record<string, unknown> = {}) {
@@ -93,6 +95,54 @@ describe('petkit-feeder-control node', () => {
     expect(mockAPI.updateFeederSetting).toHaveBeenCalledWith(100, 'manualLock', 1);
     expect(mockAPI.feedNow).not.toHaveBeenCalled();
     expect(msg.payload).toMatchObject({ deviceId: 100, settingKey: 'manualLock', settingValue: 1 });
+  });
+
+  it.each([
+    ['seconds since midnight', 24300],
+    ['an HH:MM string', '06:45'],
+  ])('should skip today\'s scheduled feed given %s in msg.payload.skipFeedTime', async (_label, skipFeedTime) => {
+    await helper.load([petkitConfig, petkitFeederControl], makeFlow());
+    const cfg = helper.getNode('cfg1') as any;
+    cfg.getAPI = () => mockAPI;
+    const n2 = helper.getNode('n2');
+
+    const msgReceived = new Promise<any>(resolve => n2.on('input', resolve));
+    helper.getNode('n1').receive({ payload: { skipFeedTime } });
+    const msg = await msgReceived;
+
+    expect(mockAPI.skipScheduledFeed).toHaveBeenCalledWith(100, 24300);
+    expect(mockAPI.feedNow).not.toHaveBeenCalled();
+    expect(msg.payload).toMatchObject({ deviceId: 100, skipFeedTime: 24300 });
+  });
+
+  it('should restore a skipped feed when msg.payload.restoreFeedTime is set', async () => {
+    await helper.load([petkitConfig, petkitFeederControl], makeFlow());
+    const cfg = helper.getNode('cfg1') as any;
+    cfg.getAPI = () => mockAPI;
+    const n2 = helper.getNode('n2');
+
+    const msgReceived = new Promise<any>(resolve => n2.on('input', resolve));
+    helper.getNode('n1').receive({ payload: { restoreFeedTime: '12:00' } });
+    const msg = await msgReceived;
+
+    expect(mockAPI.restoreScheduledFeed).toHaveBeenCalledWith(100, 43200);
+    expect(mockAPI.feedNow).not.toHaveBeenCalled();
+    expect(msg.payload).toMatchObject({ deviceId: 100, restoreFeedTime: 43200 });
+  });
+
+  it('should reject an unparseable feed time without calling the API', async () => {
+    await helper.load([petkitConfig, petkitFeederControl], makeFlow());
+    const cfg = helper.getNode('cfg1') as any;
+    cfg.getAPI = () => mockAPI;
+    const n1 = helper.getNode('n1') as any;
+
+    n1.receive({ payload: { skipFeedTime: 'breakfast' } });
+    await new Promise<void>(resolve => setImmediate(resolve));
+    await new Promise<void>(resolve => setImmediate(resolve));
+
+    expect(mockAPI.skipScheduledFeed).not.toHaveBeenCalled();
+    expect(mockAPI.feedNow).not.toHaveBeenCalled();
+    expect((n1.status as any).lastCall?.args[0]).toMatchObject({ fill: 'red' });
   });
 
   it('should set status to red and emit node.error on API failure', async () => {
