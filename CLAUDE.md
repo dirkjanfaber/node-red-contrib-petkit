@@ -164,7 +164,8 @@ POST {base_url}d4/device_detail
 
 Response shape **confirmed against two real D4 devices** (fields actually mapped into
 `Feeder` are in `src/types/petkit.d.ts`; the raw response has much more, e.g. wifi
-info, full feeding schedule (`multiFeedItem`) — left unmapped until a node needs them):
+info — left unmapped until a node needs them; the feeding plan is mapped, see Feeding plan
+below):
 
 ```
 { result: {
@@ -182,14 +183,17 @@ info, full feeding schedule (`multiFeedItem`) — left unmapped until a node nee
   cat ate from which bowl, only what each physical feeder dispensed:
   ```
   feedState: { realAmountTotal, planAmountTotal, addAmountTotal, planRealAmountTotal,
-               times, feedTimes: { [secondsSinceMidnight: string]: count } }
+               times, feedTimes: { [secondsSinceMidnight: string]: status } }
   ```
+  `feedTimes` keys are today's dispenses: scheduled slots plus manual feeds keyed by the
+  time they happened (e.g. `62214` for a manual feed at 17:16:54). A skipped slot drops
+  out, and a slot added to today's plan shows up immediately. Values seen live on
+  2026-10-01: `1` = dispensed, `3` = still pending — not amounts.
   `realAmountTotal` = `planRealAmountTotal` (from the schedule) + `addAmountTotal`
-  (manual/extra dispenses, including ones triggered via `feedNow`). Whether this
-  resets daily or accumulates since the schedule was configured is **unconfirmed** —
-  observed `feedTimes` counts greater than 1 on slots that should only fire once/day
-  suggest it may not be a clean "today" window; treat it as informative rather than
-  authoritative until verified over multiple days
+  (manual/extra dispenses, including ones triggered via `feedNow`). These are today's
+  totals: `feedTimes` only listed today's slots and dispenses on 2026-10-01, and its
+  values of 3 (once read as counts above 1) turned out to mean "pending". Daily reset
+  itself hasn't been watched across midnight yet
 
 ### Manual feed (dispense)
 
@@ -220,6 +224,38 @@ POST {base_url}d4/restoreDailyFeed   ← undo the skip
 - Skipping does not lower `planAmountTotal`
 - Calling `saveDailyFeed` right after `removeDailyFeed` on the same device can return
   error `1514` ("operation is too frequent"); a retry a few seconds later succeeds
+
+### Feeding plan
+
+Read from `device_detail` (`result.multiFeedItem`), confirmed live on two D4s on 2026-10-01:
+
+```
+multiFeedItem: { isExecuted, userId, feedDailyList: [
+  { repeats, suspended, items: [ { id: "<time>", time, amount, name } ] },  ← one per weekday
+] }
+```
+
+- `repeats` is the weekday: **1 = Sunday … 7 = Saturday** (confirmed by adding a
+  Thursday-only meal in the app on a Thursday: it showed up under `repeats: 5`; same order
+  as the app's day tabs). `localWeekdayRepeats` derives today's value in the configured
+  timezone, mapped to `Feeder.feedPlanToday`
+- `time` is seconds since midnight and doubles as `id` (as a string); it's also the
+  `s<seconds>` id the skip/restore endpoints take
+- `amount` uses `saveDailyFeed` units: the app's 1/10 cup = `10`, 1/5 cup = `20`
+- Editing the plan in the app updates `planAmountTotal` and today's `feedTimes` right away
+
+To write it:
+
+```
+POST {base_url}d4/saveFeed
+{ deviceId, feedDailyList: JSON.stringify([...same shape as above...]) }
+```
+
+- From py-petkit-api's `SAVE_FEED` command, which passes `feedDailyList` through
+  unchanged. Confirmed live on 2026-10-01: sending the read shape back (minus one meal)
+  round-tripped exactly, and a meal skipped for today stayed skipped
+- Replaces the **whole weekly plan** — there's no per-meal edit. Always read, modify,
+  write back all days (`saveFeedPlan(deviceId, plan)`)
 
 ### `day` parameter
 
@@ -288,6 +324,7 @@ interface PetkitBackend {
   getFeeders(): Promise<Feeder[]>
   feedNow(deviceId: number, amount: number): Promise<void>
   updateFeederSetting(deviceId: number, key: string, value: number): Promise<void>
+  saveFeedPlan(deviceId: number, plan: FeedPlanDay[]): Promise<void>
   skipScheduledFeed(deviceId: number, feedTime: number): Promise<void>
   restoreScheduledFeed(deviceId: number, feedTime: number): Promise<void>
 }
@@ -398,3 +435,6 @@ npm test -- --coverage
 - A `.petkit-credentials.json` file (gitignored) at the repo root holds real test
   credentials for the `scripts/smoke-test.js` / `scripts/debug-*.js` ad-hoc scripts used
   during live verification — never commit it, never hardcode credentials elsewhere
+- PetKit allows one session per account: every login from a script, the MCP server or
+  this package signs the PetKit app out (and vice versa, surfacing as error `5`). Batch
+  live checks into a single login, and warn the user before running one

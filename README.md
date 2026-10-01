@@ -27,6 +27,8 @@ Polls the PetKit cloud API for Fresh Element Solo status. Emits one message per 
 | `payload.desc` | string | PetKit's own human-readable status line, e.g. `"Next Dispense: 17:30"` |
 | `payload.settings` | object | `manualLock` (child lock), `lightMode` (indicator light), `feedSound` (dispense tone), `foodWarn` (shortage alarm) |
 | `payload.state` | object | `food` (coarse ok/low indicator), `batteryPower`, `batteryStatus`, `desiccantLeftDays`, `feeding` (1 while actively dispensing) |
+| `payload.feedPlan` | array | Weekly feeding plan, one entry per weekday: `{ repeats, suspended, meals: [{ time, amount, name }] }` - `repeats` 1 = Sunday ... 7 = Saturday, `time` in seconds since midnight, `amount` in manual-feed units (1/10 cup = 10) |
+| `payload.feedPlanToday` | array | Today's meals from `feedPlan` (`[{ time, amount, name }]`); empty when today's plan is suspended. Meals skipped for today are still listed |
 
 Send any message to the input to trigger an immediate poll. Set **Poll interval** to 0
 to disable automatic polling (minimum 60s otherwise, per the PetKit API's rate limit).

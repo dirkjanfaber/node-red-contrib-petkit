@@ -51,6 +51,10 @@
     <dd><code>manualLock</code> (child lock), <code>lightMode</code> (indicator light), <code>feedSound</code> (dispense tone), <code>foodWarn</code> (shortage alarm) - all 0/1 except lightMode</dd>
     <dt>payload.state <span class="property-type">object</span></dt>
     <dd><code>food</code> (coarse ok/low indicator), <code>batteryPower</code>, <code>batteryStatus</code>, <code>desiccantLeftDays</code>, <code>feeding</code> (1 while actively dispensing), <code>feedState</code> (per-device - not per-cat - dispense totals: <code>realAmountTotal</code>, <code>planAmountTotal</code>, <code>addAmountTotal</code>, <code>planRealAmountTotal</code>, <code>times</code>, <code>feedTimes</code>)</dd>
+    <dt>payload.feedPlan <span class="property-type">array</span></dt>
+    <dd>The recurring weekly feeding plan, one entry per weekday: <code>{ repeats, suspended, meals: [{ time, amount, name }] }</code>. <code>repeats</code> is 1 = Sunday ... 7 = Saturday, <code>time</code> is seconds since midnight, <code>amount</code> uses the same units as a manual feed (1/10 cup in the app = 10).</dd>
+    <dt>payload.feedPlanToday <span class="property-type">array</span></dt>
+    <dd>Today's meals from <code>feedPlan</code> (<code>[{ time, amount, name }]</code>), by the config node's timezone; empty when today's plan is suspended. Meals skipped for today are still listed.</dd>
   </dl>
   <h3>Details</h3>
   <p>Send any message to the input to trigger an immediate poll.
